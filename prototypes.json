@@ -3,12 +3,16 @@
     "slug": "cnn-article-paywall",
     "title": "Article paywall: after scroll",
     "description": "Home feed into an article. The paywall appears after a short scroll, with Basic and All Access plans, App Store pay sheet, purchase confirmation, and the unlocked article.",
+    "author": "Meaz Hajdarovic",
+    "email": "meaz.hajdarovic@cnn.com",
     "updated": "2026-11-25"
   },
   {
     "slug": "cnn-article-paywall-on-land",
     "title": "Article paywall: on landing",
     "description": "Same flow, but the paywall appears as soon as the article opens, before any scrolling.",
+    "author": "Meaz Hajdarovic",
+    "email": "meaz.hajdarovic@cnn.com",
     "updated": "2026-11-25"
   }
 ]
