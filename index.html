@@ -23,10 +23,138 @@
         color: #f2f2f2;
       }
 
-      main {
-        max-width: 1120px;
+      .layout {
+        display: flex;
+        max-width: 1360px;
         margin: 0 auto;
-        padding: 64px 24px 96px;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        flex: 0 0 248px;
+        height: 100vh;
+        padding: 64px 16px 32px 24px;
+        overflow-y: auto;
+        border-right: 1px solid #1f1f1f;
+      }
+
+      .sidebar-label {
+        margin: 0 0 12px 12px;
+        color: #6e6e6e;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        line-height: 16px;
+        text-transform: uppercase;
+      }
+
+      .nav {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .nav a {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 9px 12px;
+        border-radius: 10px;
+        color: #b8b8b8;
+        font-size: 14px;
+        line-height: 20px;
+        text-decoration: none;
+        transition:
+          background-color 200ms ease,
+          color 200ms ease;
+      }
+
+      .nav a:hover {
+        background: #1a1a1a;
+        color: #f2f2f2;
+      }
+
+      .nav a[aria-current="page"] {
+        background: #222;
+        color: #f2f2f2;
+        font-weight: 600;
+      }
+
+      .nav a:focus-visible {
+        outline: 2px solid #f2f2f2;
+        outline-offset: -2px;
+      }
+
+      .count {
+        color: #6e6e6e;
+        font-size: 12px;
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .nav-divider {
+        height: 1px;
+        margin: 10px 12px;
+        background: #1f1f1f;
+      }
+
+      main {
+        flex: 1;
+        min-width: 0;
+        padding: 64px 40px 96px;
+      }
+
+      .project + .project {
+        margin-top: 56px;
+      }
+
+      .project-title {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin: 0 0 20px;
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 28px;
+      }
+
+      @media (max-width: 760px) {
+        .layout {
+          flex-direction: column;
+        }
+
+        .sidebar {
+          position: static;
+          flex: none;
+          height: auto;
+          padding: 24px 24px 0;
+          border-right: 0;
+        }
+
+        .sidebar-label,
+        .nav-divider {
+          display: none;
+        }
+
+        .nav {
+          flex-direction: row;
+          gap: 8px;
+          overflow-x: auto;
+        }
+
+        .nav a {
+          flex: none;
+          border: 1px solid #262626;
+        }
+
+        main {
+          padding: 32px 24px 80px;
+        }
       }
 
       h1 {
@@ -155,76 +283,159 @@
     </style>
   </head>
   <body>
-    <main>
-      <h1>Prototypes</h1>
-      <p class="intro">Clickable prototypes. Open one to try it in the browser.</p>
-      <div class="grid" id="grid"></div>
-    </main>
+    <div class="layout">
+      <aside class="sidebar">
+        <p class="sidebar-label">Projects</p>
+        <ul class="nav" id="nav" aria-label="Projects"></ul>
+      </aside>
+      <main>
+        <h1>Prototypes</h1>
+        <p class="intro">Clickable prototypes. Open one to try it in the browser.</p>
+        <div id="projects"></div>
+      </main>
+    </div>
     <script>
-      const grid = document.getElementById("grid");
+      const nav = document.getElementById("nav");
+      const projectsRoot = document.getElementById("projects");
       const dateFormat = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" });
+      const slugify = (text) =>
+        text
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+
+      let projects = [];
+
+      function navItem(label, hash, count) {
+        const item = document.createElement("li");
+        const link = document.createElement("a");
+        link.href = hash;
+        link.dataset.hash = hash;
+        const name = document.createElement("span");
+        name.textContent = label;
+        const total = document.createElement("span");
+        total.className = "count";
+        total.textContent = count;
+        link.append(name, total);
+        item.append(link);
+        return item;
+      }
+
+      function render() {
+        const hash = projects.some((project) => `#${project.id}` === location.hash)
+          ? location.hash
+          : "#all";
+        nav.querySelectorAll("a").forEach((link) => {
+          if (link.dataset.hash === hash) link.setAttribute("aria-current", "page");
+          else link.removeAttribute("aria-current");
+        });
+        projectsRoot.querySelectorAll(".project").forEach((section) => {
+          section.hidden = hash !== "#all" && `#${section.id}` !== hash;
+        });
+      }
+
+      function card(prototype) {
+        const card = document.createElement("article");
+        card.className = "card";
+
+        const thumb = document.createElement("div");
+        thumb.className = "thumb";
+        const image = document.createElement("img");
+        image.src = `${prototype.slug}/thumbnail.png`;
+        image.alt = "";
+        image.loading = "lazy";
+        image.onerror = () => thumb.remove();
+        thumb.append(image);
+
+        const copy = document.createElement("div");
+        copy.className = "copy";
+        const title = document.createElement("a");
+        title.className = "title card-link";
+        title.href = `${prototype.slug}/`;
+        title.textContent = prototype.title;
+        const description = document.createElement("span");
+        description.className = "description";
+        description.textContent = prototype.description;
+        copy.append(title, description);
+
+        if (prototype.author) {
+          const credit = document.createElement("span");
+          credit.className = "credit";
+          const name = document.createElement("span");
+          name.textContent = `Designed by ${prototype.author}`;
+          credit.append(name);
+          if (prototype.email) {
+            const email = document.createElement("a");
+            email.href = `mailto:${prototype.email}`;
+            email.textContent = prototype.email;
+            credit.append(email);
+          }
+          copy.append(credit);
+        }
+
+        const updated = document.createElement("span");
+        updated.className = "updated";
+        updated.textContent = `Updated ${dateFormat.format(new Date(prototype.updated))}`;
+        copy.append(updated);
+
+        card.append(thumb, copy);
+        return card;
+      }
 
       fetch("prototypes.json", { cache: "no-store" })
         .then((response) => response.json())
         .then((prototypes) => {
           if (!prototypes.length) {
-            grid.innerHTML = '<p class="empty">No prototypes yet.</p>';
+            projectsRoot.innerHTML = '<p class="empty">No prototypes yet.</p>';
             return;
           }
+          const byProject = new Map();
           prototypes
             .slice()
             .sort((a, b) => b.updated.localeCompare(a.updated))
             .forEach((prototype) => {
-              const card = document.createElement("article");
-              card.className = "card";
-
-              const thumb = document.createElement("div");
-              thumb.className = "thumb";
-              const image = document.createElement("img");
-              image.src = `${prototype.slug}/thumbnail.png`;
-              image.alt = "";
-              image.loading = "lazy";
-              image.onerror = () => thumb.remove();
-              thumb.append(image);
-
-              const copy = document.createElement("div");
-              copy.className = "copy";
-              const title = document.createElement("a");
-              title.className = "title card-link";
-              title.href = `${prototype.slug}/`;
-              title.textContent = prototype.title;
-              const description = document.createElement("span");
-              description.className = "description";
-              description.textContent = prototype.description;
-              copy.append(title, description);
-
-              if (prototype.author) {
-                const credit = document.createElement("span");
-                credit.className = "credit";
-                const name = document.createElement("span");
-                name.textContent = `Designed by ${prototype.author}`;
-                credit.append(name);
-                if (prototype.email) {
-                  const email = document.createElement("a");
-                  email.href = `mailto:${prototype.email}`;
-                  email.textContent = prototype.email;
-                  credit.append(email);
-                }
-                copy.append(credit);
-              }
-
-              const updated = document.createElement("span");
-              updated.className = "updated";
-              updated.textContent = `Updated ${dateFormat.format(new Date(prototype.updated))}`;
-              copy.append(updated);
-
-              card.append(thumb, copy);
-              grid.append(card);
+              const name = prototype.project || "Other";
+              if (!byProject.has(name)) byProject.set(name, []);
+              byProject.get(name).push(prototype);
             });
+          projects = [...byProject].map(([name, items]) => ({ id: slugify(name), name, items }));
+
+          nav.append(navItem("All prototypes", "#all", prototypes.length));
+          const divider = document.createElement("li");
+          divider.className = "nav-divider";
+          divider.setAttribute("aria-hidden", "true");
+          nav.append(divider);
+
+          projects.forEach((project) => {
+            nav.append(navItem(project.name, `#${project.id}`, project.items.length));
+
+            const section = document.createElement("section");
+            section.className = "project";
+            section.id = project.id;
+            const heading = document.createElement("h2");
+            heading.className = "project-title";
+            heading.textContent = project.name;
+            const total = document.createElement("span");
+            total.className = "count";
+            total.textContent = project.items.length;
+            heading.append(total);
+            const grid = document.createElement("div");
+            grid.className = "grid";
+            project.items.forEach((prototype) => grid.append(card(prototype)));
+            section.append(heading, grid);
+            projectsRoot.append(section);
+          });
+
+          render();
         })
         .catch(() => {
-          grid.innerHTML = '<p class="empty">Couldn’t load the prototype list.</p>';
+          projectsRoot.innerHTML = '<p class="empty">Couldn’t load the prototype list.</p>';
         });
+
+      window.addEventListener("hashchange", () => {
+        render();
+        window.scrollTo({ top: 0 });
+      });
     </script>
   </body>
 </html>
