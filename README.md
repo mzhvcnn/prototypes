@@ -4,6 +4,8 @@ Clickable prototypes, published at https://mzhvcnn.github.io/prototypes/.
 
 The site is public: anyone with the link can open it.
 
+Want your own gallery like this? Follow the [guide](GUIDE.md).
+
 ## Adding or updating a prototype
 
 1. Export the prototype as a single HTML file. For the CNN paywall project, run `npm run export` in that project.
