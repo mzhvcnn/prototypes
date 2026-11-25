@@ -14,5 +14,13 @@
     "author": "Meaz Hajdarovic",
     "email": "meaz.hajdarovic@cnn.com",
     "updated": "2026-11-25"
+  },
+  {
+    "slug": "cnn-article-paywall-inline",
+    "title": "Article paywall: in article",
+    "description": "The article opens fully readable. Scrolling down fades the text into a paywall placed in the article; scrolling back up keeps the article visible.",
+    "author": "Meaz Hajdarovic",
+    "email": "meaz.hajdarovic@cnn.com",
+    "updated": "2026-11-25"
   }
 ]
