@@ -35,6 +35,112 @@
         padding: 64px 16px 32px 24px;
         overflow-y: auto;
         border-right: 1px solid #1f1f1f;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .nav.nav-footer {
+        margin-top: auto;
+        padding-top: 16px;
+        border-top: 1px solid #1f1f1f;
+      }
+
+      .guide {
+        max-width: 720px;
+        color: #c8c8c8;
+        font-size: 15px;
+        line-height: 24px;
+      }
+
+      .guide h1 {
+        margin-bottom: 16px;
+        color: #f2f2f2;
+      }
+
+      .guide h2 {
+        margin: 40px 0 12px;
+        color: #f2f2f2;
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 28px;
+      }
+
+      .guide p,
+      .guide ul,
+      .guide ol {
+        margin: 0 0 14px;
+      }
+
+      .guide ul,
+      .guide ol {
+        padding-left: 22px;
+      }
+
+      .guide li + li {
+        margin-top: 6px;
+      }
+
+      .guide strong {
+        color: #f2f2f2;
+        font-weight: 600;
+      }
+
+      .guide a {
+        color: #f2f2f2;
+        text-underline-offset: 3px;
+      }
+
+      .guide code {
+        padding: 1px 6px;
+        border-radius: 6px;
+        background: #222;
+        color: #e8e8e8;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 13px;
+      }
+
+      .prompt {
+        position: relative;
+        margin: 0 0 16px;
+        padding: 16px 18px;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        background: #181818;
+      }
+
+      .prompt p {
+        margin: 0;
+        padding-right: 72px;
+        color: #e0e0e0;
+        font-size: 14px;
+        line-height: 22px;
+      }
+
+      .copy-button {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        padding: 5px 12px;
+        border: 1px solid #333;
+        border-radius: 8px;
+        background: #222;
+        color: #d8d8d8;
+        font: inherit;
+        font-size: 12px;
+        line-height: 16px;
+        cursor: pointer;
+        transition:
+          background-color 200ms ease,
+          color 200ms ease;
+      }
+
+      .copy-button:hover {
+        background: #2c2c2c;
+        color: #f2f2f2;
+      }
+
+      .copy-button.copied {
+        color: #7ad99a;
       }
 
       .sidebar-label {
@@ -152,6 +258,17 @@
         .nav a {
           flex: none;
           border: 1px solid #262626;
+        }
+
+        .nav.nav-footer {
+          margin-top: 8px;
+          padding-top: 0;
+          border-top: 0;
+        }
+
+        .prompt p {
+          padding-right: 0;
+          padding-top: 28px;
         }
 
         main {
@@ -289,16 +406,28 @@
       <aside class="sidebar">
         <p class="sidebar-label">Projects</p>
         <ul class="nav" id="nav" aria-label="Projects"></ul>
+        <ul class="nav nav-footer" aria-label="Help">
+          <li>
+            <a href="#guide" data-hash="#guide">
+              <span>How to create your own repo</span>
+            </a>
+          </li>
+        </ul>
       </aside>
       <main>
-        <h1>Prototypes</h1>
-        <p class="intro">Clickable prototypes. Open one to try it in the browser.</p>
-        <div id="projects"></div>
+        <div id="gallery">
+          <h1>Prototypes</h1>
+          <p class="intro">Clickable prototypes. Open one to try it in the browser.</p>
+          <div id="projects"></div>
+        </div>
+        <article class="guide" id="guide" hidden></article>
       </main>
     </div>
     <script>
       const nav = document.getElementById("nav");
       const projectsRoot = document.getElementById("projects");
+      const gallery = document.getElementById("gallery");
+      const guide = document.getElementById("guide");
       const dateFormat = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" });
       const slugify = (text) =>
         text
@@ -324,17 +453,106 @@
       }
 
       function render() {
-        const hash = projects.some((project) => `#${project.id}` === location.hash)
+        const isGuide = location.hash === "#guide";
+        const hash = isGuide || projects.some((project) => `#${project.id}` === location.hash)
           ? location.hash
           : "#all";
-        nav.querySelectorAll("a").forEach((link) => {
+        document.querySelectorAll(".sidebar a").forEach((link) => {
           if (link.dataset.hash === hash) link.setAttribute("aria-current", "page");
           else link.removeAttribute("aria-current");
         });
+        gallery.hidden = isGuide;
+        guide.hidden = !isGuide;
+        if (isGuide) loadGuide();
         projectsRoot.querySelectorAll(".project").forEach((section) => {
           section.hidden = hash !== "#all" && `#${section.id}` !== hash;
         });
       }
+
+      const escapeHtml = (text) =>
+        text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+      function inlineMarkdown(text) {
+        return escapeHtml(text)
+          .replace(/`([^`]+)`/g, "<code>$1</code>")
+          .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>')
+          .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+          .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+      }
+
+      function listItems(lines, marker) {
+        const items = [];
+        lines.forEach((line) => {
+          if (marker.test(line)) items.push(line.replace(marker, ""));
+          else items[items.length - 1] += ` ${line.trim()}`;
+        });
+        return items.map((item) => `<li>${inlineMarkdown(item)}</li>`).join("");
+      }
+
+      function renderMarkdown(markdown) {
+        return markdown
+          .trim()
+          .split(/\n\s*\n/)
+          .map((block) => {
+            const lines = block.split("\n");
+            const heading = block.match(/^(#{1,3}) (.+)$/);
+            if (heading) return `<h${heading[1].length}>${inlineMarkdown(heading[2])}</h${heading[1].length}>`;
+            if (lines.every((line) => line.startsWith(">"))) {
+              const text = lines.map((line) => line.replace(/^>\s?/, "")).join(" ");
+              const plain = text.replace(/\*\*([^*]+)\*\*/g, "$1").replace(/`([^`]+)`/g, "$1");
+              return `<div class="prompt"><p>${inlineMarkdown(text)}</p><button type="button" class="copy-button" data-copy="${escapeHtml(plain)}">Copy</button></div>`;
+            }
+            if (/^- /.test(lines[0])) return `<ul>${listItems(lines, /^- /)}</ul>`;
+            if (/^\d+\. /.test(lines[0])) {
+              return `<ol start="${parseInt(lines[0], 10)}">${listItems(lines, /^\d+\. /)}</ol>`;
+            }
+            return `<p>${inlineMarkdown(lines.join(" "))}</p>`;
+          })
+          .join("");
+      }
+
+      let guideLoaded = false;
+      function loadGuide() {
+        if (guideLoaded) return;
+        guideLoaded = true;
+        fetch("GUIDE.md", { cache: "no-store" })
+          .then((response) => response.text())
+          .then((markdown) => {
+            guide.innerHTML = renderMarkdown(markdown);
+          })
+          .catch(() => {
+            guideLoaded = false;
+            guide.innerHTML = '<p class="empty">Couldn’t load the guide.</p>';
+          });
+      }
+
+      guide.addEventListener("click", (event) => {
+        const button = event.target.closest(".copy-button");
+        if (!button) return;
+        const text = button.dataset.copy;
+        const field = document.createElement("textarea");
+        field.value = text;
+        field.style.position = "fixed";
+        field.style.opacity = "0";
+        document.body.append(field);
+        field.select();
+        const copied = document.execCommand("copy");
+        field.remove();
+        (copied ? Promise.resolve() : navigator.clipboard.writeText(text))
+          .then(() => {
+            button.textContent = "Copied";
+            button.classList.add("copied");
+          })
+          .catch(() => {
+            button.textContent = "Select and copy";
+          })
+          .finally(() => {
+            setTimeout(() => {
+              button.textContent = "Copy";
+              button.classList.remove("copied");
+            }, 1600);
+          });
+      });
 
       function card(prototype) {
         const card = document.createElement("article");
@@ -389,6 +607,7 @@
         .then((prototypes) => {
           if (!prototypes.length) {
             projectsRoot.innerHTML = '<p class="empty">No prototypes yet.</p>';
+            render();
             return;
           }
           const byProject = new Map();
@@ -432,6 +651,7 @@
         })
         .catch(() => {
           projectsRoot.innerHTML = '<p class="empty">Couldn’t load the prototype list.</p>';
+          render();
         });
 
       window.addEventListener("hashchange", () => {

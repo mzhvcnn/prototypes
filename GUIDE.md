@@ -12,12 +12,11 @@ It takes about 15 minutes the first time.
 
 ## 1. Create your gallery
 
-1. In Cursor, choose **File > Open Folder**, make a new empty folder called `prototypes`, and open it.
-2. Open the agent chat (Cmd+L) and paste this prompt, replacing the name and email with your own:
+In Cursor, choose **File > Open Folder**, make a new empty folder called `prototypes`, and open it. Then open the agent chat (Cmd+L) and paste this prompt, replacing the name and email with your own:
 
-   > Create a prototype gallery in this folder and publish it as a public GitHub Pages site, using a new public GitHub repo called `prototypes` on my account. Copy the gallery design from https://github.com/mzhvcnn/prototypes: the `index.html` page with the project sidebar, the `prototypes.json` format, the `README.md`, and an empty `.nojekyll` file. Start with an empty prototype list and don't copy any of the existing prototype folders. My name for the "Designed by" credit is **Your Name** and my email is **you@cnn.com**. When it's live, send me the link.
+> Create a prototype gallery in this folder and publish it as a public GitHub Pages site, using a new public GitHub repo called `prototypes` on my account. Copy the gallery design from https://github.com/mzhvcnn/prototypes: the `index.html` page with the project sidebar and guide, the `GUIDE.md`, the `prototypes.json` format, the `README.md`, and an empty `.nojekyll` file. Start with an empty prototype list and don't copy any of the existing prototype folders. My name for the "Designed by" credit is **Your Name** and my email is **you@cnn.com**. When it's live, send me the link.
 
-3. If Cursor asks you to sign in to GitHub, follow its steps. It usually opens a browser page with a one-time code, which you approve once.
+If Cursor asks you to sign in to GitHub, follow its steps. It usually opens a browser page with a one-time code, which you approve once.
 
 When it's done, you'll get a link like `https://YOUR-GITHUB-NAME.github.io/prototypes/`. The page will say "No prototypes yet" until you add one.
 
